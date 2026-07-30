@@ -13,8 +13,6 @@ function maxProfit(n) {
 
                 const totalTime = t * 5 + p * 4 + c * 10;
 
-                // Hidden rule hypothesis:
-                // Ignore combinations whose final building finishes exactly at time n.
                 if (totalTime >= n)
                     continue;
 
@@ -32,7 +30,6 @@ function maxProfit(n) {
 
                     let best = 0;
 
-                    // Build Theatre
                     if (rt > 0) {
                         const finish = currentTime + 5;
 
@@ -45,7 +42,6 @@ function maxProfit(n) {
                         }
                     }
 
-                    // Build Pub
                     if (rp > 0) {
                         const finish = currentTime + 4;
 
@@ -58,7 +54,6 @@ function maxProfit(n) {
                         }
                     }
 
-                    // Build Commercial Park
                     if (rc > 0) {
                         const finish = currentTime + 10;
 
@@ -110,7 +105,6 @@ function maxProfit(n) {
 }
 
 
-// Sample Tests
 
 console.log("Time Unit = 7");
 maxProfit(7);
