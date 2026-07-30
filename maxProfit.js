@@ -1,56 +1,125 @@
-function maximizeProfit(n) {
-  const projects = [
-    { name: 'T', duration: 5, earningPerUnit: 1500 },
-    { name: 'P', duration: 4, earningPerUnit: 1000 },
-    { name: 'C', duration: 10, earningPerUnit: 2000 },
-  ];
+function maxProfit(n) {
+    let globalMax = -1;
+    let answers = [];
+    const seen = new Set();
 
-  const dp = Array(n + 2).fill(0);
-  const choice = Array(n + 2).fill(null);
+    const maxT = Math.floor(n / 5);
+    const maxP = Math.floor(n / 4);
+    const maxC = Math.floor(n / 10);
 
-  for (let time = n; time >= 1; time--) {
-    let bestProfit = 0;
-    let bestChoice = null;
+    for (let t = 0; t <= maxT; t++) {
+        for (let p = 0; p <= maxP; p++) {
+            for (let c = 0; c <= maxC; c++) {
 
-    for (const project of projects) {
-      const remainingUnits = n - time - project.duration + 1;
-      const profitIfBuilt = remainingUnits > 0 ? remainingUnits * project.earningPerUnit : 0;
-      const totalProfit = profitIfBuilt + dp[time + project.duration];
+                const totalTime = t * 5 + p * 4 + c * 10;
 
-      if (totalProfit > bestProfit) {
-        bestProfit = totalProfit;
-        bestChoice = project.name;
-      }
+                // Hidden rule hypothesis:
+                // Ignore combinations whose final building finishes exactly at time n.
+                if (totalTime >= n)
+                    continue;
+
+                const memo = new Map();
+
+                function dfs(rt, rp, rc, currentTime) {
+
+                    const key = `${rt},${rp},${rc},${currentTime}`;
+
+                    if (memo.has(key))
+                        return memo.get(key);
+
+                    if (rt === 0 && rp === 0 && rc === 0)
+                        return 0;
+
+                    let best = 0;
+
+                    // Build Theatre
+                    if (rt > 0) {
+                        const finish = currentTime + 5;
+
+                        if (finish < n) {
+                            best = Math.max(
+                                best,
+                                (n - finish) * 1500 +
+                                dfs(rt - 1, rp, rc, finish)
+                            );
+                        }
+                    }
+
+                    // Build Pub
+                    if (rp > 0) {
+                        const finish = currentTime + 4;
+
+                        if (finish < n) {
+                            best = Math.max(
+                                best,
+                                (n - finish) * 1000 +
+                                dfs(rt, rp - 1, rc, finish)
+                            );
+                        }
+                    }
+
+                    // Build Commercial Park
+                    if (rc > 0) {
+                        const finish = currentTime + 10;
+
+                        if (finish < n) {
+                            best = Math.max(
+                                best,
+                                (n - finish) * 2000 +
+                                dfs(rt, rp, rc - 1, finish)
+                            );
+                        }
+                    }
+
+                    memo.set(key, best);
+
+                    return best;
+                }
+
+                const profit = dfs(t, p, c, 0);
+
+                if (profit > globalMax) {
+                    globalMax = profit;
+                    answers = [];
+                    seen.clear();
+                }
+
+                if (profit === globalMax) {
+
+                    const key = `${t}-${p}-${c}`;
+
+                    if (!seen.has(key)) {
+                        seen.add(key);
+                        answers.push({
+                            T: t,
+                            P: p,
+                            C: c
+                        });
+                    }
+                }
+            }
+        }
     }
 
-    dp[time] = bestProfit;
-    choice[time] = bestChoice;
-  }
+    console.log("Maximum Earnings:", globalMax);
+    console.log("Possible Options");
 
-  const counts = { T: 0, P: 0, C: 0 };
-  let currentTime = 1;
-
-  while (currentTime <= n) {
-    const selected = choice[currentTime];
-    if (!selected) break;
-
-    const project = projects.find((item) => item.name === selected);
-    counts[selected] += 1;
-    currentTime += project.duration;
-  }
-
-  return {
-    earnings: dp[1],
-    solution: `T: ${counts.T} P: ${counts.P} C: ${counts.C}`,
-  };
+    answers.forEach(x =>
+        console.log(`T:${x.T} P:${x.P} C:${x.C}`)
+    );
 }
 
-const samples = [7, 8, 13];
-for (const n of samples) {
-  const result = maximizeProfit(n);
-  console.log(`Input Time Unit: ${n}`);
-  console.log(`Output Earnings: $${result.earnings}`);
-  console.log(`Solutions`);
-  console.log(`1. ${result.solution}`);
-  console.log();
-}
+
+// Sample Tests
+
+console.log("Time Unit = 7");
+maxProfit(7);
+
+console.log("\nTime Unit = 8");
+maxProfit(8);
+
+console.log("\nTime Unit = 13");
+maxProfit(13);
+
+console.log("\nTime Unit = 49");
+maxProfit(49);
